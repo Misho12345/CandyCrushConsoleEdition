@@ -329,10 +329,9 @@ bool CandyCrushGame::remove_matches(const bool is_in_setup)
             for (auto& [dir_, length] : res)
             {
                 for (uint32_t i = 1; i < length; i++)
-                {
                     activate_bombs(pos + dir_ * static_cast<int8_t>(i));
-                    if (!is_in_setup) refresh_score(score + length * (length + 5) + 10);
-                }
+
+                if (!is_in_setup) refresh_score(score + length * (length + 5) + 10);
             }
         }
     }
