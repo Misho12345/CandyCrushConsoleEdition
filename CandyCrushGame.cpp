@@ -1,9 +1,7 @@
 #include "CandyCrushGame.h"
 #include "Bomb.h"
 
-#include <iostream>
-
-#ifdef _WIN32
+#ifndef UNIX
 #include <conio.h>
 #endif
 
@@ -47,14 +45,14 @@ void CandyCrushGame::run()
             {
                 if (!is_outside) continue;
 
-                print(L"{}\n\r", get_bottom_pos());
+                print(STRING("{}\n\r"), get_bottom_pos());
                 flush();
                 break;
             }
             else if (key == InputKey::Space && !is_outside && !refreshing)
             {
                 swap_mode = !swap_mode;
-                refresh_pixel(cursor.x, cursor.y);
+                refresh_pixel(cursor);
             }
 
             continue;
@@ -68,10 +66,10 @@ void CandyCrushGame::run()
 
 void CandyCrushGame::display_ui() const
 {
-    printnl(L"{} - Quit\033[{};{}HScore: {}",
+    printnl(STRING("{} - Quit\033[{};{}HScore: {}"),
             get_bottom_pos(),
             2, candies.get_width() * 2 + 5,
-            colored(220, 210, 30, std::to_wstring(score)));
+            colored(220, 210, 30, TO_STRING(score)));
     flush();
 }
 
@@ -92,9 +90,9 @@ void CandyCrushGame::refresh_score(const uint32_t new_score)
             display_score += step;
             if (display_score > score) display_score = score;
 
-            print(L"\033[{};{}H{}",
+            print(STRING("\033[{};{}H{}"),
                   2, candies.get_width() * 2 + 12,
-                  colored(220, 210, 30, std::to_wstring(display_score)));
+                  colored(220, 210, 30, TO_STRING(display_score)));
 
             send_cursor_to_top();
 
@@ -106,21 +104,27 @@ void CandyCrushGame::refresh_score(const uint32_t new_score)
     }).detach();
 }
 
+
 void CandyCrushGame::refresh_pixel(const uint32_t x, const uint32_t y) const
 {
-    const bool selected = cursor == Position{ x, y };
+    refresh_pixel(Position{ x, y });
+}
 
-    print(L"\033[{};{}H{}{}{}",
-          y + 2, x * 2 + 2,
+void CandyCrushGame::refresh_pixel(const Position& pos) const
+{
+    const bool selected = cursor == pos;
+
+    print(STRING("\033[{};{}H{}{}{}"),
+          pos.y + 2, pos.x * 2 + 2,
           selected ? (swap_mode ? '<' : '[') : ' ',
-          candies.get(x, y) != nullptr ? candies.get(x, y)->to_string() : L" ",
+          candies.get(pos.x, pos.y) != nullptr ? candies.get(pos.x, pos.y)->to_string() : STRING(" "),
           selected ? (swap_mode ? '>' : ']') : ' ');
 
     if (!selected && (
-            std::abs(cursor.x - x) <= 1 ||
-            std::abs(cursor.y - y) <= 1) &&
+            std::abs(cursor.x - pos.x) <= 1 ||
+            std::abs(cursor.y - pos.y) <= 1) &&
         cursor.y < candies.get_height())
-        refresh_pixel(cursor.x, cursor.y);
+        refresh_pixel(cursor);
 
     flush();
 }
@@ -128,12 +132,12 @@ void CandyCrushGame::refresh_pixel(const uint32_t x, const uint32_t y) const
 
 void CandyCrushGame::send_cursor_to_top()
 {
-    print(L"\033[1;1H");
+    print(STRING("\033[1;1H"));
     flush();
 }
 
 
-std::wstring CandyCrushGame::get_bottom_pos() const { return std::format(L"\033[{};1H", candies.get_height() + 2); }
+STRING_T CandyCrushGame::get_bottom_pos() const { return std::format(STRING("\033[{};1H"), candies.get_height() + 2); }
 
 
 void CandyCrushGame::handle_movement(const Direction& dir)
@@ -151,8 +155,8 @@ void CandyCrushGame::handle_movement(const Direction& dir)
     {
         cursor = other_pos;
 
-        print(L"{} -", get_bottom_pos());
-        refresh_pixel(other_pos.x, other_pos.y);
+        print(STRING("{} -"), get_bottom_pos());
+        refresh_pixel(other_pos);
         send_cursor_to_top();
     }
     else if (will_be_outside)
@@ -160,8 +164,8 @@ void CandyCrushGame::handle_movement(const Direction& dir)
         cursor    = other_pos;
         swap_mode = false;
 
-        print(L"{} >", get_bottom_pos());
-        refresh_pixel(curr_pos.x, curr_pos.y);
+        print(STRING("{} >"), get_bottom_pos());
+        refresh_pixel(curr_pos);
         send_cursor_to_top();
     }
     else if (!swap_mode) move_cursor(other_pos);
@@ -170,11 +174,11 @@ void CandyCrushGame::handle_movement(const Direction& dir)
 
 void CandyCrushGame::move_cursor(const Position& pos)
 {
-    const auto [x, y] = cursor;
-    cursor            = pos;
+    const Position curr = cursor;
+    cursor              = pos;
 
-    refresh_pixel(x, y);
-    refresh_pixel(cursor.x, cursor.y);
+    refresh_pixel(curr);
+    refresh_pixel(cursor);
     send_cursor_to_top();
 }
 
@@ -195,9 +199,8 @@ void CandyCrushGame::swap(const Position& other_pos)
     else refresh();
 
     swap_mode = false;
-    refresh_pixel(cursor.x, cursor.y);
+    refresh_pixel(cursor);
 }
-
 
 bool CandyCrushGame::is_in_bounds(const Position& pos) const
 {
@@ -207,29 +210,11 @@ bool CandyCrushGame::is_in_bounds(const Position& pos) const
 
 std::variant<CandyCrushGame::Direction, CandyCrushGame::InputKey> CandyCrushGame::get_input()
 {
-    char ch;
+    unsigned char ch;
 
     while (true)
     {
-        #ifdef _WIN32
-        ch = _getch();
-
-        if (ch == '\n') return InputKey::Enter;
-        if (ch == ' ') return InputKey::Space;
-
-        if (ch != 0 && ch != 224) continue;
-        ch = _getch();
-        switch (ch)
-        {
-            case 72: return directions[3]; //Up
-            case 80: return directions[1]; // Down
-            case 77: return directions[0]; // Right
-            case 75: return directions[2]; // Left
-            default: break;
-        }
-
-        #elif defined(__linux__) || defined(__APPLE__)
-
+        #ifdef UNIX
         if (read(STDIN_FILENO, &ch, 1) != 1) continue;
 
         if (ch == '\n') return InputKey::Enter;
@@ -250,6 +235,23 @@ std::variant<CandyCrushGame::Direction, CandyCrushGame::InputKey> CandyCrushGame
             default: break;
         }
 
+        #else
+
+        ch = _getch();
+
+        if (ch == 13) return InputKey::Enter;
+        if (ch == 32) return InputKey::Space;
+
+        if (ch != 0 && ch != 224) continue;
+        ch = _getch();
+        switch (ch)
+        {
+            case 72: return directions[3]; // Up
+            case 80: return directions[1]; // Down
+            case 77: return directions[0]; // Right
+            case 75: return directions[2]; // Left
+            default: break;
+        }
         #endif
     }
 }
@@ -295,25 +297,20 @@ bool CandyCrushGame::remove_matches(const bool is_in_setup)
 {
     bool has_changed = false;
 
-    auto activate_bombs = [this](const Position& pos)
+    std::vector will_be_destroyed(candies.get_width(), std::vector(candies.get_height(), false));
+
+    auto activate_bombs = [&](const Position& pos)
     {
+        will_be_destroyed[pos.x][pos.y] = true;
+
         for (const auto& dir : directions)
         {
             if (const Position pos_ = pos + dir;
                 is_in_bounds(pos_) &&
                 candies.get(pos_.x, pos_.y) != nullptr &&
                 candies.get(pos_.x, pos_.y)->is_bomb())
-                candies.destroy(pos_.x, pos_.y);
+                will_be_destroyed[pos_.x][pos_.y] = true;
         }
-    };
-
-    auto remove = [&](const Position& pos_)
-    {
-        if (candies.get(pos_.x, pos_.y) == nullptr) return;
-
-        candies.destroy(pos_.x, pos_.y);
-        activate_bombs(pos_);
-        has_changed = true;
     };
 
 
@@ -326,15 +323,29 @@ bool CandyCrushGame::remove_matches(const bool is_in_setup)
             const auto res = check_surroundings(pos);
             if (res.empty()) continue;
 
-            remove(pos);
+            activate_bombs(pos);
+            has_changed = true;
 
-            for (auto& [dir, length] : res)
+            for (auto& [dir_, length] : res)
             {
                 for (uint32_t i = 1; i < length; i++)
-                    remove(pos + dir * static_cast<int8_t>(i));
-
-                if (!is_in_setup) refresh_score(score + length * (length + 5) + 10);
+                {
+                    activate_bombs(pos + dir_ * static_cast<int8_t>(i));
+                    if (!is_in_setup) refresh_score(score + length * (length + 5) + 10);
+                }
             }
+        }
+    }
+
+    for (uint32_t x = 0; x < candies.get_width(); x++)
+    {
+        for (uint32_t y = 0; y < candies.get_height(); y++)
+        {
+            if (!will_be_destroyed[x][y] ||
+                candies.get(x, y) == nullptr)
+                continue;
+
+            candies.destroy(x, y);
         }
     }
 

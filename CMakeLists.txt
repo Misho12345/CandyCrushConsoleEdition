@@ -10,4 +10,5 @@ add_executable(CandyCrushConsoleEdition main.cpp
         CandyBase.h
         Candy.h
         Bomb.h
+        macros.h
 )

@@ -4,7 +4,6 @@
 #include <array>
 #include <variant>
 
-#include <iostream>
 #include <format>
 #include <thread>
 #include <mutex>
@@ -12,7 +11,7 @@
 template <typename T>
 concept formattable = requires(T t)
 {
-    { std::format("{}", t) } -> std::same_as<std::string>;
+    { std::format(STRING("{}"), t) } -> std::same_as<STRING_T>;
 };
 
 class CandyCrushGame
@@ -78,10 +77,12 @@ private:
 
     void display_ui() const;
     void refresh_score(uint32_t new_score);
-    void refresh_pixel(uint32_t x, uint32_t y) const;
 
-    static void                       send_cursor_to_top();
-    [[nodiscard]] std::wstring        get_bottom_pos() const;
+    void refresh_pixel(uint32_t x, uint32_t y) const;
+    void refresh_pixel(const Position& pos) const;
+
+    static void            send_cursor_to_top();
+    [[nodiscard]] STRING_T get_bottom_pos() const;
 
     void handle_movement(const Direction& dir);
     void move_cursor(const Position& pos);
@@ -100,27 +101,27 @@ private:
 
     static void printnl() { print('\n'); }
 
-    static void print(const formattable auto& value) { print(L"{}", value); }
-    static void printnl(const formattable auto& value) { printnl(L"{}", value); }
+    static void print(const formattable auto& value) { print(STRING("{}"), value); }
+    static void printnl(const formattable auto& value) { printnl(STRING("{}"), value); }
 
     template <formattable... Args>
-    static void print(const std::wformat_string<Args...> format, Args&&... args)
+    static void print(const FORMAT_STRING_T<Args...> format, Args&&... args)
     {
         std::lock_guard lock(print_mutex);
-        std::wcout << std::format(format, std::forward<Args>(args)...);
+        COUT << std::format(format, std::forward<Args>(args)...);
     }
 
     template <formattable... Args>
-    static void printnl(const std::wformat_string<Args...> format, Args&&... args)
+    static void printnl(const FORMAT_STRING_T<Args...> format, Args&&... args)
     {
         print(format, std::forward<Args>(args)...);
-        std::wcout << std::endl;
+        COUT << std::endl;
     }
 
     static void flush()
     {
         std::lock_guard lock(flush_mutex);
-        std::flush(std::wcout);
+        std::flush(COUT);
     }
 
     inline static std::mutex print_mutex;

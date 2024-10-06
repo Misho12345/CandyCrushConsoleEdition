@@ -1,27 +1,17 @@
 #include "CandyCrushGame.h"
 
-#include <iostream>
-#include <locale>
-
-#if defined(__linux__) || defined(__APPLE__)
+#ifdef UNIX
 #include <termios.h>
 #include <unistd.h>
+#include <locale>
 #endif
-
-#if !defined(_WIN32) && !defined(__linux__) && !defined(__APPLE__)
-#error "Unsupported platform"
-#endif
-
 
 int main()
 {
+    #ifdef UNIX
     std::locale::global(std::locale("en_US.UTF-8"));
-
-    #ifdef _WIN32
-    system("cls");
-    #elif defined(__linux__) || defined(__APPLE__)
-
     system("clear");
+
     termios oldt{};
     tcgetattr(STDIN_FILENO, &oldt);
     termios newt = oldt;
@@ -30,13 +20,14 @@ int main()
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     newt.c_cc[VMIN]  = 1;
     newt.c_cc[VTIME] = 0;
+    #else
+    system("cls");
     #endif
-
 
     CandyCrushGame game(16, 16);
     game.run();
 
-    #if defined(__linux__) || defined(__APPLE__)
+    #ifdef UNIX
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     #endif
 }

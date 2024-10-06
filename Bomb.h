@@ -6,7 +6,7 @@ class Bomb final : public CandyBase
 public:
     void destroy(CandyMatrix& matrix, const uint32_t x, const uint32_t y) override
     {
-        is_destoyed = true;
+        is_destroyed = true;
 
         for (int8_t i = -1; i <= 1; i++)
         {
@@ -21,12 +21,20 @@ public:
                 if (y_ >= matrix.get_height()) continue;
 
                 if (matrix.get(x_, y_) != nullptr &&
-                    !matrix.get(x_, y_)->is_destoyed)
+                    !matrix.get(x_, y_)->is_destroyed)
                     matrix.destroy(x_, y_);
             }
         }
     }
 
-    [[nodiscard]] std::wstring to_string() const override { return colored(128, 128, 128, L"⊛"); }
-    [[nodiscard]] bool         is_bomb() const override { return true; }
+    [[nodiscard]] STRING_T to_string() const override
+    {
+        #ifndef FORCE_ASCII
+        return colored(128, 128, 128, STRING("⊛"));
+        #else
+        return colored(128, 128, 128, STRING("X"));
+        #endif
+    }
+
+    [[nodiscard]] bool is_bomb() const override { return true; }
 };
