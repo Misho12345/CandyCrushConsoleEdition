@@ -8,11 +8,6 @@
 #include <thread>
 #include <mutex>
 
-template <typename T>
-concept formattable = requires(T t)
-{
-    { std::format(STRING("{}"), t) } -> std::same_as<STRING_T>;
-};
 
 class CandyCrushGame
 {
@@ -62,7 +57,7 @@ private:
         }
     };
 
-    struct Surroundings
+    struct Match
     {
         Direction direction;
         uint32_t  length;
@@ -91,9 +86,9 @@ private:
     [[nodiscard]] bool                                     is_in_bounds(const Position& pos) const;
     [[nodiscard]] static std::variant<Direction, InputKey> get_input();
 
-    [[nodiscard]] std::vector<Surroundings> check_surroundings(const Position& pos) const;
-    [[nodiscard]] bool                      remove_matches(bool is_in_setup = false);
-    [[nodiscard]] bool                      bring_down();
+    [[nodiscard]] std::vector<Match> check_matches(const Position& pos) const;
+    [[nodiscard]] bool               remove_matches(bool is_in_setup = false);
+    [[nodiscard]] bool               bring_down();
 
 
     void refresh(bool is_in_setup = false);
@@ -101,17 +96,17 @@ private:
 
     static void printnl() { print('\n'); }
 
-    static void print(const formattable auto& value) { print(STRING("{}"), value); }
-    static void printnl(const formattable auto& value) { printnl(STRING("{}"), value); }
+    static void print(const auto& value) { print(STRING("{}"), value); }
+    static void printnl(const auto& value) { printnl(STRING("{}"), value); }
 
-    template <formattable... Args>
+    template <typename... Args>
     static void print(const FORMAT_STRING_T<Args...> format, Args&&... args)
     {
         std::lock_guard lock(print_mutex);
         COUT << std::format(format, std::forward<Args>(args)...);
     }
 
-    template <formattable... Args>
+    template <typename... Args>
     static void printnl(const FORMAT_STRING_T<Args...> format, Args&&... args)
     {
         print(format, std::forward<Args>(args)...);

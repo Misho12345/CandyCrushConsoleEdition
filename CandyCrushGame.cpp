@@ -53,6 +53,7 @@ void CandyCrushGame::run()
             {
                 swap_mode = !swap_mode;
                 refresh_pixel(cursor);
+                send_cursor_to_top();
             }
 
             continue;
@@ -66,10 +67,30 @@ void CandyCrushGame::run()
 
 void CandyCrushGame::display_ui() const
 {
-    printnl(STRING("{} - Quit\033[{};{}HScore: {}"),
-            get_bottom_pos(),
-            2, candies.get_width() * 2 + 5,
-            colored(220, 210, 30, TO_STRING(score)));
+    print(STRING("{} - Quit"), get_bottom_pos());
+
+    print(STRING("\033[{};{}HScore: {}"),
+        2, candies.get_width() * 2 + 5,
+        colored(220, 210, 30, TO_STRING(score)));
+
+    std::array sign =
+    {
+        colored(230, 230, 50, STRING("   ____                       _                 ")),
+        colored(230, 215, 50, STRING("  / ___|   __ _   _ __     __| |  _   _         ")),
+        colored(230, 200, 50, STRING(" | |      / _` | | '_ \\   / _` | | | | |       ")),
+        colored(230, 185, 50, STRING(" | |___  | (_| | | | | | | (_| | | |_| |        ")),
+        colored(230, 170, 50, STRING("  \\____|  \\__,_| |_| |_|  \\__,_|  \\__, |    ")),
+        colored(230, 155, 50, STRING("   ____                        _  |___/         ")),
+        colored(230, 140, 50, STRING("  / ___|  _ __   _   _   ___  | |__   "  )) + colored(230, 208, 50, STRING("  ____   ")),
+        colored(230, 125, 50, STRING(" | |     | '__| | | | | / __| | '_ \\  " )) + colored(190, 216, 70, STRING(" |___ \\ ")),
+        colored(230, 110, 50, STRING(" | |___  | |    | |_| | \\__ \\ | | | | ")) + colored(150, 224, 70, STRING("   __) | ")),
+        colored(230,  95, 50, STRING("  \\____| |_|     \\__,_| |___/ |_| |_| ")) + colored(110, 232, 70, STRING("  / __/  ")),
+        colored(230,  80, 50, STRING("                                      "  )) + colored( 70, 240, 70, STRING(" |_____| "))
+    };
+
+    for (uint32_t i = 0; i < sign.size(); i++)
+        print(STRING("\033[{};{}H{}"), 4 + i, candies.get_width() * 2 + 5, sign[i]);
+
     flush();
 }
 
@@ -276,9 +297,9 @@ std::variant<CandyCrushGame::Direction, CandyCrushGame::InputKey> CandyCrushGame
 }
 
 
-std::vector<CandyCrushGame::Surroundings> CandyCrushGame::check_surroundings(const Position& pos) const
+std::vector<CandyCrushGame::Match> CandyCrushGame::check_matches(const Position& pos) const
 {
-    std::vector<Surroundings> vec;
+    std::vector<Match> vec;
 
     for (const auto& dir : directions)
     {
@@ -318,7 +339,7 @@ bool CandyCrushGame::remove_matches(const bool is_in_setup)
 
     std::vector will_be_destroyed(candies.get_width(), std::vector(candies.get_height(), false));
 
-    auto activate_bombs = [&](const Position& pos)
+    auto activate_near_bombs = [&](const Position& pos)
     {
         will_be_destroyed[pos.x][pos.y] = true;
 
@@ -339,21 +360,23 @@ bool CandyCrushGame::remove_matches(const bool is_in_setup)
         {
             Position pos = { x, y };
 
-            const auto res = check_surroundings(pos);
+            const auto res = check_matches(pos);
             if (res.empty()) continue;
 
-            activate_bombs(pos);
+            activate_near_bombs(pos);
             has_changed = true;
 
             for (auto& [dir_, length] : res)
             {
                 for (uint32_t i = 1; i < length; i++)
-                    activate_bombs(pos + dir_ * static_cast<int8_t>(i));
+                    activate_near_bombs(pos + dir_ * static_cast<int8_t>(i));
 
                 if (!is_in_setup) refresh_score(score + length * (length + 5) + 10);
             }
         }
     }
+
+    if (!has_changed) return false;
 
     for (uint32_t x = 0; x < candies.get_width(); x++)
     {
@@ -367,7 +390,7 @@ bool CandyCrushGame::remove_matches(const bool is_in_setup)
         }
     }
 
-    return has_changed;
+    return true;
 }
 
 bool CandyCrushGame::bring_down()
@@ -422,14 +445,11 @@ void CandyCrushGame::refresh(const bool is_in_setup)
     {
         do
         {
-            do
-            {
-                if (!is_in_setup)
-                    std::this_thread::sleep_for(200ms);
-            }
+            do if (!is_in_setup) std::this_thread::sleep_for(150ms);
             while (bring_down());
-        }
-        while (remove_matches(is_in_setup));
+
+            if (!is_in_setup) std::this_thread::sleep_for(200ms);
+        } while (remove_matches(is_in_setup));
 
         send_cursor_to_top();
         refreshing = false;
