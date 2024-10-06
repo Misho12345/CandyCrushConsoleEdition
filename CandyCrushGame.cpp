@@ -217,8 +217,18 @@ std::variant<CandyCrushGame::Direction, CandyCrushGame::InputKey> CandyCrushGame
         #ifdef UNIX
         if (read(STDIN_FILENO, &ch, 1) != 1) continue;
 
-        if (ch == '\n') return InputKey::Enter;
-        if (ch == ' ') return InputKey::Space;
+        switch (ch)
+        {
+            case 'w': return directions[3];
+            case 's': return directions[1];
+            case 'd': return directions[0];
+            case 'a': return directions[2];
+
+            case '\n': return InputKey::Enter;
+            case ' ': return InputKey::Space;
+
+            default: break;
+        }
 
         if (ch != '\033') continue;
 
@@ -236,11 +246,20 @@ std::variant<CandyCrushGame::Direction, CandyCrushGame::InputKey> CandyCrushGame
         }
 
         #else
-
         ch = _getch();
 
-        if (ch == 13) return InputKey::Enter;
-        if (ch == 32) return InputKey::Space;
+        switch (ch)
+        {
+            case 'w': return directions[3];
+            case 's': return directions[1];
+            case 'd': return directions[0];
+            case 'a': return directions[2];
+
+            case '\r': return InputKey::Enter;
+            case ' ': return InputKey::Space;
+
+            default: break;
+        }
 
         if (ch != 0 && ch != 224) continue;
         ch = _getch();
