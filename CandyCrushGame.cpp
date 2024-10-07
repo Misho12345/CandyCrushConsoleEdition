@@ -208,7 +208,12 @@ void CandyCrushGame::send_cursor_to_top()
 }
 
 
-STRING_T CandyCrushGame::get_quit_pos() const { return std::format(STRING("\033[{};3H"), candies.get_height() + 2); }
+STRING_T CandyCrushGame::get_quit_pos() const
+{
+    return std::format(STRING("\033[{};{}H"),
+                       candies.get_height() + 2,
+                       candies.get_width() * 2 - 4);
+}
 
 
 void CandyCrushGame::handle_movement(const Direction& dir)
