@@ -30,7 +30,7 @@ public:
     [[nodiscard]] STRING_T to_string() const override
     {
         #ifndef FORCE_ASCII
-        return colored(128, 128, 128, STRING("⊛"));
+        return colored(128, 128, 128, STRING("ơ"));
         #else
         return colored(128, 128, 128, STRING("X"));
         #endif

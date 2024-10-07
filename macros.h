@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 
+// #define FORCE_ASCII
+
 #if defined(__linux__) || defined(__APPLE__)
 #define UNIX
 #endif

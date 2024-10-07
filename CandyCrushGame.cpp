@@ -269,6 +269,7 @@ void CandyCrushGame::swap(const Position& other_pos)
 
     if (!remove_matches())
     {
+        std::this_thread::sleep_for(100ms);
         candies.swap(curr_pos.x, curr_pos.y, other_pos.x, other_pos.y);
         move_cursor(curr_pos);
     }
