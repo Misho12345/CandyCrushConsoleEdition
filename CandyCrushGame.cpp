@@ -45,7 +45,7 @@ void CandyCrushGame::run()
             {
                 if (!is_outside) continue;
 
-                print(STRING("{}\n\r"), get_bottom_pos());
+                print(STRING("{}\n"), get_quit_pos());
                 flush();
                 break;
             }
@@ -67,10 +67,60 @@ void CandyCrushGame::run()
 
 void CandyCrushGame::display_ui() const
 {
-    print(STRING("{} - Quit"), get_bottom_pos());
+    constexpr uint8_t tl_r = 255, tl_b = 0,   tl_g = 0,
+                      tr_r = 255, tr_b = 255, tr_g = 0,
+                      bl_r = 255, bl_b = 0,   bl_g = 255,
+                      br_r = 0,   br_b = 255, br_g = 255;
+
+    auto lerp = [](const uint8_t a, const uint8_t b, const double t)
+    {
+        return static_cast<uint8_t>(a + t * (b - a));
+    };
+
+    for (uint32_t i = 0; i < candies.get_height() + 2; i++)
+    {
+        const double t = i / static_cast<double>(candies.get_height() + 2);
+
+        STRING_T left = colored(
+            lerp(tl_r, bl_r, t),
+            lerp(tl_g, bl_g, t),
+            lerp(tl_b, bl_b, t),
+            i == 0 ? STRING("┌") : i == candies.get_height() + 1 ? STRING("└") : STRING("│"));
+
+        STRING_T right = colored(
+            lerp(tr_r, br_r, t),
+            lerp(tr_g, br_g, t),
+            lerp(tr_b, br_b, t),
+            i == 0 ? STRING("┐") : i == candies.get_height() + 1 ? STRING("┘") : STRING("│"));
+
+        print(STRING("\033[{};{}H{}"), i + 1, 1, left);
+        print(STRING("\033[{};{}H{}"), i + 1, candies.get_width() * 2 + 3, right);
+    }
+
+    for (uint32_t i = 0; i < candies.get_width() * 2 + 1; i++)
+    {
+        const double t = (i + 1) / static_cast<double>(candies.get_width() * 2 + 3);
+
+        STRING_T top = colored(
+            lerp(tl_r, tr_r, t),
+            lerp(tl_g, tr_g, t),
+            lerp(tl_b, tr_b, t),
+            STRING("─"));
+
+        STRING_T bottom = colored(
+            lerp(bl_r, br_r, t),
+            lerp(bl_g, br_g, t),
+            lerp(bl_b, br_b, t),
+            STRING("─"));
+
+        print(STRING("\033[{};{}H{}"), 1, i + 2, top);
+        print(STRING("\033[{};{}H{}"), candies.get_height() + 2, i + 2, bottom);
+    }
+
+    print(STRING("{} Quit "), get_quit_pos());
 
     print(STRING("\033[{};{}HScore: {}"),
-        2, candies.get_width() * 2 + 5,
+        2, candies.get_width() * 2 + 6,
         colored(220, 210, 30, TO_STRING(score)));
 
     std::array sign =
@@ -112,7 +162,7 @@ void CandyCrushGame::refresh_score(const uint32_t new_score)
             if (display_score > score) display_score = score;
 
             print(STRING("\033[{};{}H{}"),
-                  2, candies.get_width() * 2 + 12,
+                  2, candies.get_width() * 2 + 13,
                   colored(220, 210, 30, TO_STRING(display_score)));
 
             send_cursor_to_top();
@@ -158,7 +208,7 @@ void CandyCrushGame::send_cursor_to_top()
 }
 
 
-STRING_T CandyCrushGame::get_bottom_pos() const { return std::format(STRING("\033[{};1H"), candies.get_height() + 2); }
+STRING_T CandyCrushGame::get_quit_pos() const { return std::format(STRING("\033[{};3H"), candies.get_height() + 2); }
 
 
 void CandyCrushGame::handle_movement(const Direction& dir)
@@ -176,7 +226,7 @@ void CandyCrushGame::handle_movement(const Direction& dir)
     {
         cursor = other_pos;
 
-        print(STRING("{} -"), get_bottom_pos());
+        print(STRING("{} Quit "), get_quit_pos());
         refresh_pixel(other_pos);
         send_cursor_to_top();
     }
@@ -185,7 +235,7 @@ void CandyCrushGame::handle_movement(const Direction& dir)
         cursor    = other_pos;
         swap_mode = false;
 
-        print(STRING("{} >"), get_bottom_pos());
+        print(STRING("{}[Quit]"), get_quit_pos());
         refresh_pixel(curr_pos);
         send_cursor_to_top();
     }

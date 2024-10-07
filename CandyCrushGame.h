@@ -77,7 +77,7 @@ private:
     void refresh_pixel(const Position& pos) const;
 
     static void            send_cursor_to_top();
-    [[nodiscard]] STRING_T get_bottom_pos() const;
+    [[nodiscard]] STRING_T get_quit_pos() const;
 
     void handle_movement(const Direction& dir);
     void move_cursor(const Position& pos);

@@ -3,13 +3,19 @@
 #ifdef UNIX
 #include <termios.h>
 #include <unistd.h>
+#endif
+
+#ifndef FORCE_ASCII
 #include <locale>
 #endif
 
 int main()
 {
-    #ifdef UNIX
+    #ifndef FORCE_ASCII
     std::locale::global(std::locale("en_US.UTF-8"));
+    #endif
+
+    #ifdef UNIX
     system("clear");
 
     termios oldt{};
