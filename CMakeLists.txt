@@ -7,8 +7,15 @@ add_executable(CandyCrushConsoleEdition main.cpp
         CandyCrushGame.h
         CandyCrushGame.cpp
         CandyMatrix.h
-        CandyBase.h
-        Candy.h
-        Bomb.h
-        macros.h
+        CandyMatrix.cpp
+        items/Item.h
+        items/Candy.h
+        items/Candy.cpp
+        items/Bomb.h
+        items/Bomb.cpp
+        utils/Random.h
+        utils/Random.cpp
+        utils/macros.h
+        utils/print.h
+        utils/structs.h
 )

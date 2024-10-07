@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <format>
 
 // #define FORCE_ASCII
 
@@ -25,6 +26,7 @@
 
 #define COUT std::wcout
 #define FORMAT_STRING_T std::wformat_string
+#define OSTREAM std::wostream
 
 #else
 #define STRING_T std::string
@@ -33,4 +35,5 @@
 
 #define COUT std::cout
 #define FORMAT_STRING_T std::format_string
+#define OSTREAM std::ostream
 #endif
