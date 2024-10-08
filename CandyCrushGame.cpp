@@ -217,7 +217,7 @@ void CandyCrushGame::refresh(const bool is_in_setup)
     uint32_t temp;
     uint32_t& score_ = is_in_setup ? temp : score;
 
-    std::thread([&]
+    std::thread([this, is_in_setup, &score_]
     {
         do
         {
