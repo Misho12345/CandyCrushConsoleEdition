@@ -44,13 +44,13 @@ private:
     void move_cursor(const Position& pos);
     void swap(const Position& other_pos);
 
-    [[nodiscard]] static std::variant<Direction, InputKey> get_input();
+    [[nodiscard]] std::variant<Direction, InputKey> get_input();
 
     static void            send_cursor_to_top();
     [[nodiscard]] STRING_T get_quit_pos() const;
 
 
-    Env env{};
+    Env         env{};
     CandyMatrix matrix;
 
     Position cursor{ 0, 0 };

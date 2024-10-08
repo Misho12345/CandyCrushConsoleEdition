@@ -90,6 +90,22 @@ void CandyCrushGame::display_ui() const
 
     auto lerp = [](const uint8_t a, const uint8_t b, const double t) { return static_cast<uint8_t>(a + t * (b - a)); };
 
+    #ifdef FORCE_ASCII
+    STRING_T horiz = STRING("-");
+    STRING_T vert = STRING("|");
+    STRING_T tl = STRING("+");
+    STRING_T tr = STRING("+");
+    STRING_T bl = STRING("+");
+    STRING_T br = STRING("+");
+    #else
+    STRING_T horiz = STRING("─");
+    STRING_T vert = STRING("│");
+    STRING_T tl = STRING("┌");
+    STRING_T tr = STRING("┐");
+    STRING_T bl = STRING("└");
+    STRING_T br = STRING("┘");
+    #endif
+
     for (uint32_t i = 0; i < matrix.get_height() + 2; i++)
     {
         const double t = i / static_cast<double>(matrix.get_height() + 2);
@@ -98,13 +114,13 @@ void CandyCrushGame::display_ui() const
             lerp(tl_r, bl_r, t),
             lerp(tl_g, bl_g, t),
             lerp(tl_b, bl_b, t),
-            i == 0 ? STRING("┌") : i == matrix.get_height() + 1 ? STRING("└") : STRING("│"));
+            i == 0 ? tl : i == matrix.get_height() + 1 ? bl : vert);
 
         STRING_T right = colored(
             lerp(tr_r, br_r, t),
             lerp(tr_g, br_g, t),
             lerp(tr_b, br_b, t),
-            i == 0 ? STRING("┐") : i == matrix.get_height() + 1 ? STRING("┘") : STRING("│"));
+            i == 0 ? tr : i == matrix.get_height() + 1 ? br : vert);
 
         print(STRING("\033[{};{}H{}"), i + 1, 1, left);
         print(STRING("\033[{};{}H{}"), i + 1, matrix.get_width() * 2 + 3, right);
@@ -118,13 +134,13 @@ void CandyCrushGame::display_ui() const
             lerp(tl_r, tr_r, t),
             lerp(tl_g, tr_g, t),
             lerp(tl_b, tr_b, t),
-            STRING("─"));
+            horiz);
 
         STRING_T bottom = colored(
             lerp(bl_r, br_r, t),
             lerp(bl_g, br_g, t),
             lerp(bl_b, br_b, t),
-            STRING("─"));
+            horiz);
 
         print(STRING("\033[{};{}H{}"), 1, i + 2, top);
         print(STRING("\033[{};{}H{}"), matrix.get_height() + 2, i + 2, bottom);
@@ -373,8 +389,8 @@ std::variant<Direction, CandyCrushGame::InputKey> CandyCrushGame::get_input()
         ch = _getch();
         switch (ch)
         {
-            case 72: return return Direction::up();
-            case 80: return return Direction::down();
+            case 72: return Direction::up();
+            case 80: return Direction::down();
             case 77: return Direction::right();
             case 75: return Direction::left();
             default: break;
