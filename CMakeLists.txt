@@ -13,9 +13,11 @@ add_executable(CandyCrushConsoleEdition main.cpp
         items/Candy.cpp
         items/Bomb.h
         items/Bomb.cpp
+        items/ChaosBomb.cpp
+        items/ChaosBomb.h
         utils/Random.h
         utils/Random.cpp
+        utils/structs.h
         utils/macros.h
         utils/print.h
-        utils/structs.h
 )

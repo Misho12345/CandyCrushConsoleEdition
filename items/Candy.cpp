@@ -40,7 +40,7 @@ bool Candy::on_move(CandyMatrix& matrix, const Position& pos, uint32_t& score)
     return matrix.remove_matches(score);
 }
 
-std::wstring Candy::to_string() const
+STRING_T Candy::to_string() const
 {
     #ifndef FORCE_ASCII
     switch (color)

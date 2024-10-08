@@ -21,8 +21,10 @@ public:
 
     virtual void               destroy(CandyMatrix& matrix, const Position& pos) { destroyed = true; }
     [[nodiscard]] virtual bool on_move(CandyMatrix& matrix, const Position& pos, uint32_t& score) = 0;
+    [[nodiscard]] virtual bool destroy_on_move() const { return false; }
 
     [[nodiscard]] virtual STRING_T to_string() const = 0;
+
 
     [[nodiscard]] bool is_destroyed() const { return destroyed; }
 

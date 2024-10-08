@@ -28,11 +28,11 @@ bool Bomb::on_move(CandyMatrix& matrix, const Position& pos, uint32_t& score)
     return true;
 }
 
-std::wstring Bomb::to_string() const
+STRING_T Bomb::to_string() const
 {
     #ifndef FORCE_ASCII
     return colored(128, 128, 128, STRING("ơ"));
     #else
-        return colored(128, 128, 128, STRING("X"));
+    return colored(128, 128, 128, STRING("X"));
     #endif
 }

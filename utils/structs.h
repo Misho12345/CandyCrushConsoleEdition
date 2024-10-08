@@ -41,6 +41,7 @@ struct Position
     [[nodiscard]] bool in_bounds(const uint32_t width, const uint32_t height) const { return x < width && y < height; }
 
     bool operator==(const Position& other) const { return x == other.x && y == other.y; }
+    bool operator!=(const Position& other) const { return !(*this == other); }
 
     Position operator+(const Direction& dir) const { return { x + dir.x, y + dir.y }; }
     Position operator-(const Direction& dir) const { return { x - dir.x, y - dir.y }; }

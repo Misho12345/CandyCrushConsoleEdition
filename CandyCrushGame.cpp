@@ -54,7 +54,7 @@ void CandyCrushGame::play()
     while (true)
     {
         const auto input      = get_input();
-        const bool is_outside = cursor.y >= matrix.get_height();
+        const bool is_outside = cursor.y == matrix.get_height();
 
         if (std::holds_alternative<Direction>(input))
         {
@@ -244,24 +244,26 @@ void CandyCrushGame::handle_movement(const Direction& dir)
     const Position curr_pos  = cursor;
     const Position other_pos = cursor + dir;
 
-    const bool is_outside      = curr_pos.y >= matrix.get_height();
-    const bool will_be_outside = other_pos.y >= matrix.get_height();
+    if (!other_pos.in_bounds(matrix.get_width(), matrix.get_height() + 1))
+    {
+        swap_mode = false;
+        return;
+    }
 
-    if (will_be_outside && (swap_mode || is_outside)) return;
-    if (!will_be_outside && !other_pos.in_bounds(matrix.get_width(), matrix.get_height())) return;
+    const bool curr_outside  = curr_pos.y == matrix.get_height();
+    const bool other_outside = other_pos.y == matrix.get_height();
 
-    if (is_outside)
+    if (other_outside && (swap_mode || curr_outside)) return;
+
+    if (curr_outside)
     {
         cursor = other_pos;
-
         print(STRING("{} Quit "), get_quit_pos());
         refresh_pixel(other_pos);
     }
-    else if (will_be_outside)
+    else if (other_outside)
     {
         cursor    = other_pos;
-        swap_mode = false;
-
         print(STRING("{}[Quit]"), get_quit_pos());
         refresh_pixel(curr_pos);
     }
@@ -287,7 +289,7 @@ void CandyCrushGame::swap(const Position& other_pos)
 
     std::this_thread::sleep_for(200ms);
 
-    // the weird if is to prioritize candy destruction before bomb destruction,
+    // this is made to prioritize candy destruction before bomb destruction,
     // otherwise the bomb would destroy the candy before it could be destroyed
     if (!instance_of<Candy>(matrix.get(curr_pos)) &&
         instance_of<Candy>(matrix.get(other_pos)) &&
@@ -303,8 +305,8 @@ void CandyCrushGame::swap(const Position& other_pos)
     }
     else
     {
-        if (matrix.get(curr_pos) != nullptr) matrix.destroy(curr_pos);
-        if (matrix.get(other_pos) != nullptr) matrix.destroy(other_pos);
+        if (matrix.get(curr_pos) != nullptr && matrix.get(curr_pos)->destroy_on_move()) matrix.destroy(curr_pos);
+        if (matrix.get(other_pos) != nullptr && matrix.get(other_pos)->destroy_on_move()) matrix.destroy(other_pos);
         refresh_score();
         refresh();
     }

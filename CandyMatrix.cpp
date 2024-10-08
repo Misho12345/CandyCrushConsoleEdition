@@ -1,5 +1,6 @@
 #include "CandyMatrix.h"
 #include "items/Bomb.h"
+#include "items/ChaosBomb.h"
 
 CandyMatrix::CandyMatrix(
     const uint32_t width, const uint32_t height,
@@ -91,10 +92,10 @@ bool CandyMatrix::bring_down()
             {
                 if (get(pos) == nullptr)
                 {
-                    set(
-                        Random::rand_u8(0, 10) > 0
+                    const auto r = Random::rand_u8(0, 10);
+                    set(r > 1
                             ? reinterpret_cast<Item*>(new Candy())
-                            : reinterpret_cast<Item*>(new Bomb()),
+                            : r == 0 ? reinterpret_cast<Item*>(new Bomb()) : reinterpret_cast<Item*>(new ChaosBomb()),
                         pos);
 
                     has_changed = true;

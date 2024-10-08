@@ -25,8 +25,7 @@ public:
 
     [[nodiscard]] static std::vector<Match> check_matches(const CandyMatrix& matrix, const Position& pos);
 
-    [[nodiscard]] bool
-        on_move(CandyMatrix& matrix, const Position& pos, uint32_t& score) override;
+    [[nodiscard]] bool on_move(CandyMatrix& matrix, const Position& pos, uint32_t& score) override;
     [[nodiscard]] STRING_T to_string() const override;
 
     bool operator==(const Candy& other) const { return color == other.color; }
